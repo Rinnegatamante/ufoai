@@ -44,10 +44,19 @@ void Sys_Init (void)
  * @brief The entry point for linux server and client.
  * Initializes the program and calls @c Qcommon_Frame in an infinite loop.
  */
+#ifdef __vita__
+#include <vitasdk.h>
+#include <vitaGL.h>
+int quake_main (unsigned int argc, void *argv)
+#else
 int main (int argc, char** argv)
+#endif
 {
+	vglUseTripleBuffering(GL_FALSE);
+	vglSetParamBufferSize(4 * 1024 * 1024);
+	vglInitWithCustomThreshold(0, 960, 544, 2 * 1024 * 1024, 0, 0, 0, SCE_GXM_MULTISAMPLE_NONE);
 	Sys_ConsoleInit();
-	Qcommon_Init(argc, argv);
+	Qcommon_Init(argc, (char **)argv);
 
 	fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL, 0) | FNDELAY);
 
@@ -56,3 +65,33 @@ int main (int argc, char** argv)
 
 	return 0;
 }
+
+#ifdef __vita__
+int _newlib_heap_size_user = 320 * 1024 * 1024;
+
+int main(int argc, char **argv)
+{
+	scePowerSetArmClockFrequency(444);
+	scePowerSetBusClockFrequency(222);
+	scePowerSetGpuClockFrequency(222);
+	scePowerSetGpuXbarClockFrequency(166);
+	
+	sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
+	int ret = sceNetShowNetstat();
+	SceNetInitParam initparam;
+	if (ret == SCE_NET_ERROR_ENOTINIT) {
+		initparam.memory = malloc(141 * 1024);
+		initparam.size = 141 * 1024;
+		initparam.flags = 0;
+		sceNetInit(&initparam);
+	}
+	
+	// We need a bigger stack to run Quake, so we create a new thread with a proper stack size
+	SceUID main_thread = sceKernelCreateThread("UFO: AI", quake_main, 0x40, 0x100000, 0, 0, NULL);
+	if (main_thread >= 0){
+		sceKernelStartThread(main_thread, 0, NULL);
+		sceKernelWaitThreadEnd(main_thread, NULL, NULL);
+	}
+	return 0;
+}
+#endif

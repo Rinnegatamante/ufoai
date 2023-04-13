@@ -399,11 +399,12 @@ void R_DrawRect (int x, int y, int w, int h, const vec4_t color, float lineWidth
 
 	glDisable(GL_TEXTURE_2D);
 	glLineWidth(lineWidth);
+#ifndef __vita__
 #ifndef GL_VERSION_ES_CM_1_0
 	glLineStipple(2, pattern);
 	glEnable(GL_LINE_STIPPLE);
 #endif
-
+#endif
 	glVertexPointer(2, GL_FLOAT, 0, points);
 	glDrawArrays(GL_LINE_LOOP, 0, 4);
 	R_BindDefaultArray(GL_VERTEX_ARRAY);
@@ -412,10 +413,11 @@ void R_DrawRect (int x, int y, int w, int h, const vec4_t color, float lineWidth
 
 	glEnable(GL_TEXTURE_2D);
 	glLineWidth(1.0f);
+#ifndef __vita__
 #ifndef GL_VERSION_ES_CM_1_0
 	glDisable(GL_LINE_STIPPLE);
 #endif
-
+#endif
 	R_Color(nullptr);
 }
 

@@ -40,6 +40,10 @@ typedef struct imageArray_s {
 imageArray_t r_images;
 int r_numImages;
 
+#ifdef __vita__
+#define GL_VERSION_ES_CM_1_0
+#endif
+
 /* Wicked for()-loop to go through all images in the r_images linked list. Parameters are: (int i, image_t* image, imageArray_t* imageArray) */
 #define FOR_EACH_IMAGE(i, image, imageArray) \
 	for (i = 0, imageArray = &r_images, image = &imageArray->images[0]; i < r_numImages; i++, image++, \
@@ -315,7 +319,11 @@ void R_UploadTexture (const unsigned* data, int width, int height, image_t* imag
 #else
 		GLenum bFormat = GL_RGBA;
 #endif
+#ifdef __vita__
+		glTexImage2D(GL_TEXTURE_2D, 0, texFormat == GL_RGBA ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_COMPRESSED_RGB_S3TC_DXT1_EXT, scaledWidth, scaledHeight, 0, bFormat, GL_UNSIGNED_BYTE, tmpBuff ? tmpBuff : data);
+#else
 		glTexImage2D(GL_TEXTURE_2D, 0, texFormat, scaledWidth, scaledHeight, 0, bFormat, GL_UNSIGNED_BYTE, tmpBuff ? tmpBuff : data);
+#endif
 		if (tmpBuff)
 			Mem_Free(tmpBuff);
 		return;
@@ -378,7 +386,11 @@ void R_UploadTexture (const unsigned* data, int width, int height, image_t* imag
 #else
 	const GLenum bFormat = GL_RGBA;
 #endif
+#ifdef __vita__
+	glTexImage2D(GL_TEXTURE_2D, 0, texFormat == GL_RGBA ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_COMPRESSED_RGB_S3TC_DXT1_EXT, scaledWidth, scaledHeight, 0, bFormat, GL_UNSIGNED_BYTE, tmpBuff ? tmpBuff : data);
+#else
 	glTexImage2D(GL_TEXTURE_2D, 0, texFormat, scaledWidth, scaledHeight, 0, bFormat, GL_UNSIGNED_BYTE, tmpBuff ? tmpBuff : data);
+#endif
 	R_CheckError();
 
 	if (tmpBuff)
@@ -558,8 +570,10 @@ image_t* R_RenderToTexture (const char* name, int x, int y, int w, int h)
 	}
 
 	glFlush();
+#ifndef __vita__
 #ifndef GL_VERSION_ES_CM_1_0
 	glReadBuffer(GL_BACK);
+#endif
 #endif
 	R_SelectTexture(&texunit_diffuse);
 	R_BindTexture(img->texnum);

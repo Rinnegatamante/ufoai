@@ -216,6 +216,7 @@ void Sys_Mkdir (const char* thePath)
 
 void Sys_Mkfifo (const char* ospath, qFILE* f)
 {
+#ifndef __vita__
 	struct stat buf;
 
 	/* if file already exists AND is a pipefile, remove it */
@@ -231,10 +232,13 @@ void Sys_Mkfifo (const char* ospath, qFILE* f)
 		const int fn = fileno(fifo);
 		fcntl(fn, F_SETFL, O_NONBLOCK);
 		f->f = fifo;
-	} else {
+	} else
+#endif
+	{
 		Com_Printf("WARNING: Could not create fifo pipe at %s.\n", ospath);
 		f->f = nullptr;
 	}
+
 }
 
 FILE* Sys_Fopen (const char* filename, const char* mode)

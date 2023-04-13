@@ -387,10 +387,11 @@ void R_SetupSpotLight (int index, const light_t* light)
 	index += GL_LIGHT0;
 
 	glEnable(index);
+#ifndef __vita__
 	glLightf(index, GL_CONSTANT_ATTENUATION, MIN_GL_CONSTANT_ATTENUATION);
 	glLightf(index, GL_LINEAR_ATTENUATION, 0);
 	glLightf(index, GL_QUADRATIC_ATTENUATION, 16.0 / (light->radius * light->radius));
-
+#endif
 	VectorCopy(light->origin, position);
 	position[3] = 1.0; /* spot light */
 
@@ -413,9 +414,11 @@ void R_DisableSpotLight (int index)
 	index += GL_LIGHT0;
 
 	glDisable(index);
+#ifndef __vita__
 	glLightf(index, GL_CONSTANT_ATTENUATION, MIN_GL_CONSTANT_ATTENUATION);
 	glLightf(index, GL_LINEAR_ATTENUATION, 0.0);
 	glLightf(index, GL_QUADRATIC_ATTENUATION, 0.0);
+#endif
 	glLightfv(index, GL_AMBIENT, blackColor);
 	glLightfv(index, GL_DIFFUSE, blackColor);
 	glLightfv(index, GL_SPECULAR, blackColor);

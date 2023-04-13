@@ -43,6 +43,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #    define SO_EXT "dll"
 #  endif
 
+#elif defined __vita__
+#  define BUILDSTRING_OS "Vita"
+#  ifndef SO_EXT
+#    define SO_EXT "suprx"
+#  endif
+
 #elif defined __linux__
 #  define BUILDSTRING_OS "Linux"
 #  ifndef SO_EXT

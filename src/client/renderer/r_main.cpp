@@ -245,6 +245,7 @@ void R_BeginFrame (void)
 	}
 
 	/* draw buffer stuff */
+#ifndef __vita__
 #ifndef GL_VERSION_ES_CM_1_0
 	if (r_drawbuffer->modified) {
 		r_drawbuffer->modified = false;
@@ -256,7 +257,7 @@ void R_BeginFrame (void)
 		R_CheckError();
 	}
 #endif
-
+#endif
 	/* texturemode stuff */
 	/* Realtime set level of anisotropy filtering and change texture lod bias */
 	if (r_texturemode->modified) {
@@ -579,7 +580,7 @@ static void R_RegisterSystemVars (void)
 	r_drawworld = Cvar_Get("r_drawworld", "1", 0, "Draw the world brushes");
 	r_isometric = Cvar_Get("r_isometric", "0", CVAR_ARCHIVE, "Draw the world in isometric mode");
 	r_nocull = Cvar_Get("r_nocull", "0", 0, "Don't perform culling for brushes and entities");
-	r_anisotropic = Cvar_Get("r_anisotropic", "1", CVAR_ARCHIVE);
+	r_anisotropic = Cvar_Get("r_anisotropic", "0", CVAR_ARCHIVE);
 	r_texture_lod = Cvar_Get("r_texture_lod", "0", CVAR_ARCHIVE);
 	r_screenshot_format = Cvar_Get("r_screenshot_format", "jpg", CVAR_ARCHIVE, "png, jpg or tga are valid screenshot formats");
 	r_screenshot_jpeg_quality = Cvar_Get("r_screenshot_jpeg_quality", "75", CVAR_ARCHIVE, "jpeg quality in percent for jpeg screenshots");
@@ -613,7 +614,7 @@ static void R_RegisterSystemVars (void)
 	r_ext_nonpoweroftwo = Cvar_Get("r_ext_nonpoweroftwo", "1", CVAR_ARCHIVE, "Enable or disable the non power of two extension");
 	r_ext_s3tc_compression = Cvar_Get("r_ext_s3tc_compression", "1", CVAR_ARCHIVE, "Also see r_ext_texture_compression");
 	r_intel_hack = Cvar_Get("r_intel_hack", "1", CVAR_ARCHIVE, "Intel cards have no shaders until this is set to 0 - to it to a value > 1 to not limit the max texture resolution");
-	r_vertexbuffers = Cvar_Get("r_vertexbuffers", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls usage of OpenGL Vertex Buffer Objects (VBO) versus legacy vertex arrays.");
+	r_vertexbuffers = Cvar_Get("r_vertexbuffers", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls usage of OpenGL Vertex Buffer Objects (VBO) versus legacy vertex arrays.");
 	r_maxlightmap = Cvar_Get("r_maxlightmap", "2048", CVAR_ARCHIVE | CVAR_LATCH, "Reduce this value on older hardware");
 	Cvar_SetCheckFunction("r_maxlightmap", R_CvarCheckMaxLightmap);
 
@@ -982,6 +983,7 @@ static void R_InitExtensions (void)
 	}
 
 	/* glsl vertex and fragment shaders and programs */
+#ifndef __vita__
 	if (R_CheckExtension("GL_ARB_fragment_shader")) {
 		qglCreateShader = (CreateShader_t)R_GetProcAddress("glCreateShader");
 		qglDeleteShader = (DeleteShader_t)R_GetProcAddress("glDeleteShader");
@@ -1026,7 +1028,7 @@ static void R_InitExtensions (void)
 		/* The shading language is not supported.*/
 		Com_Printf("GLSL shaders unsupported by OpenGL implementation.\n");
 	}
-
+#endif
 	/* framebuffer objects */
 	if (R_CheckExtension("GL_###_framebuffer_object")) {
 		qglIsRenderbufferEXT = (IsRenderbufferEXT_t)R_GetProcAddressExt("glIsRenderbuffer###");
@@ -1098,6 +1100,9 @@ static void R_InitExtensions (void)
 	Com_Printf("max supported vertex texture units: %i\n", r_config.maxVertexTextureImageUnits);
 
 	glGetIntegerv(GL_MAX_LIGHTS, &r_config.maxLights);
+#ifdef __vita__
+	r_config.maxLights = 0;
+#endif
 	Com_Printf("max supported lights: %i\n", r_config.maxLights);
 
 	r_dynamic_lights = Cvar_Get("r_dynamic_lights", "1", CVAR_ARCHIVE | CVAR_R_PROGRAMS, "Sets max number of GL lightsources to use in shaders");
@@ -1137,7 +1142,9 @@ static void R_InitExtensions (void)
 	/* check max texture size */
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &r_config.maxTextureSize);
 	/* stubbed or broken drivers may have reported 0 */
+#ifndef __vita__
 	if (r_config.maxTextureSize <= 0)
+#endif
 		r_config.maxTextureSize = 256;
 
 	if ((err = glGetError()) != GL_NO_ERROR) {
@@ -1183,7 +1190,7 @@ static inline void R_EnforceVersion (void)
 	int maj, min, rel;
 
 	sscanf(r_config.versionString, "%d.%d.%d ", &maj, &min, &rel);
-
+#ifndef __vita__
 #ifndef GL_VERSION_ES_CM_1_0
 	if (maj > 1)
 		return;
@@ -1202,6 +1209,7 @@ static inline void R_EnforceVersion (void)
 
 	if (rel < 1)
 		Com_Error(ERR_FATAL, "OpenGL version %s is less than 1.2.1", r_config.versionString);
+#endif
 #endif
 }
 

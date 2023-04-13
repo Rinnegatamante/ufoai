@@ -125,8 +125,10 @@ void R_InitFBObjects (void)
  */
 void R_DeleteFBObject (r_framebuffer_t* buf)
 {
+#ifndef __vita__
 	if (buf->depth)
 		qglDeleteRenderbuffersEXT(1, &buf->depth);
+#endif
 	buf->depth = 0;
 
 	if (buf->textures) {
@@ -204,14 +206,14 @@ r_framebuffer_t* R_CreateFramebuffer (int width, int height, int ntextures, bool
 	buf->nTextures = ntextures;
 	buf->textures = Mem_AllocTypeN(unsigned int, ntextures);
 
-#ifdef GL_VERSION_ES_CM_1_0
+#if defined(GL_VERSION_ES_CM_1_0) || defined(__vita__)
 	buf->pixelFormat = GL_RGBA;
 	buf->byteFormat = GL_UNSIGNED_BYTE;
 #else
 	buf->pixelFormat = halfFloat ? GL_RGBA16F_ARB : GL_RGBA8;
 	buf->byteFormat = halfFloat ? GL_HALF_FLOAT_ARB : GL_UNSIGNED_BYTE;
 #endif
-
+#ifndef __vita__
 	/* Presence of depth buffer indicates render target that could use antialiasing */
 	if (depth) {
 		/** @todo also check if we are running on older (SM2.0) hardware, which doesn't support antialiased MRT */
@@ -221,7 +223,7 @@ r_framebuffer_t* R_CreateFramebuffer (int width, int height, int ntextures, bool
 				buf->samples = samples;
 		}
 	}
-
+#endif
 	for (i = 0; i < buf->nTextures; i++) {
 		buf->textures[i] = R_GetFreeFBOTexture();
 		glBindTexture(GL_TEXTURE_2D, buf->textures[i]);
@@ -231,11 +233,13 @@ r_framebuffer_t* R_CreateFramebuffer (int width, int height, int ntextures, bool
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+#ifndef __vita__
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+
 		qglGenerateMipmapEXT(GL_TEXTURE_2D);
 		if (r_config.anisotropic)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_config.maxAnisotropic);
-
+#endif
 		R_CheckError();
 	}
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -246,6 +250,7 @@ r_framebuffer_t* R_CreateFramebuffer (int width, int height, int ntextures, bool
 	qglBindFramebufferEXT(GL_FRAMEBUFFER_EXT, buf->fbo);
 
 	/* create&attach depth renderbuffer */
+#ifndef __vita__
 	if (depth) {
 		qglGenRenderbuffersEXT(1, &buf->depth);
 		qglBindRenderbufferEXT(GL_RENDERBUFFER_EXT, buf->depth);
@@ -257,7 +262,8 @@ r_framebuffer_t* R_CreateFramebuffer (int width, int height, int ntextures, bool
 	} else {
 		buf->depth = 0;
 	}
-
+#endif
+#ifndef __vita__
 	/* create multisample color buffers if needed */
 	if (buf->samples) {
 		/* generate color buffers */
@@ -274,7 +280,7 @@ r_framebuffer_t* R_CreateFramebuffer (int width, int height, int ntextures, bool
 		R_CheckError();
 		qglBindFramebufferEXT(GL_FRAMEBUFFER_EXT, buf->proxyFBO);
 	}
-
+#endif
 	/* Whether multisampling was enabled or not, current FBO should be populated with render-to-texture bindings */
 	for (i = 0; i < buf->nTextures; i++) {
 		qglFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, colorAttachments[i], GL_TEXTURE_2D, buf->textures[i], 0);
@@ -301,9 +307,11 @@ void R_ResolveMSAA (const r_framebuffer_t* buf)
 	qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, buf->fbo);
 	qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, buf->proxyFBO);
 	for (int i = 0; i < buf->nTextures; i++)	 {
+#ifndef __vita__
 #ifndef GL_VERSION_ES_CM_1_0
 		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT + i);
 		glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT + i);
+#endif
 #endif
 		qglBlitFramebuffer(0, 0, buf->width, buf-> height, 0, 0, buf->width, buf->height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 

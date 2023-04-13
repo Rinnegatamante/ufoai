@@ -69,8 +69,16 @@ static void R_SetSDLIcon (void)
 #endif
 }
 
+#ifdef __vita__
+bool renderer_inited = false;
+#endif
 bool Rimp_Init (void)
 {
+#ifdef __vita__
+	if (renderer_inited)
+		return true;
+	renderer_inited = true;
+#endif
 	SDL_version version;
 	int attrValue;
 
@@ -281,6 +289,7 @@ bool R_InitGraphics (const viddefContext_t* context)
 
 void Rimp_Shutdown (void)
 {
+#ifndef __vita__
 #if SDL_VERSION_ATLEAST(2,0,0)
 	SDL_DestroyWindow(cls.window);
 	SDL_GL_DeleteContext(cls.context);
@@ -293,5 +302,6 @@ void Rimp_Shutdown (void)
 		SDL_Quit();
 	else
 		SDL_QuitSubSystem(SDL_INIT_VIDEO);
+#endif
 #endif
 }

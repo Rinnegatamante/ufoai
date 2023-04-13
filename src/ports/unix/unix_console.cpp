@@ -27,7 +27,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "../system.h"
 #include <unistd.h>
 #include <signal.h>
+#ifndef __vita__
 #include <termios.h>
+#endif
 #include <fcntl.h>
 #include <sys/time.h>
 
@@ -43,9 +45,9 @@ static bool ttyConsoleActivated = false;
 /* some key codes that the terminal may be using, initialised on start up */
 static int TTY_erase;
 static int TTY_eof;
-
+#ifndef __vita__
 static struct termios TTY_tc;
-
+#endif
 static consoleHistory_t ttyConsoleHistory;
 
 /* This is somewhat of a duplicate of the graphical console history
@@ -191,6 +193,7 @@ void Sys_ShowConsole (bool show)
  */
 void Sys_ConsoleShutdown (void)
 {
+#ifndef __vita__
 	if (ttyConsoleActivated) {
 		Sys_TTYDeleteCharacter(); /* Delete "]" */
 		tcsetattr(STDIN_FILENO, TCSADRAIN, &TTY_tc);
@@ -198,6 +201,7 @@ void Sys_ConsoleShutdown (void)
 
 	/* Restore blocking to stdin reads */
 	fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL, 0) & ~O_NONBLOCK);
+#endif
 }
 
 static void Sys_TTYConsoleHistoryClear (consoleHistory_t* edit)
@@ -216,6 +220,7 @@ static bool Sys_IsATTY (void)
  */
 void Sys_ConsoleInit (void)
 {
+#ifndef __vita__
 	/* If the process is backgrounded (running non interactively)
 	 * then SIGTTIN or SIGTOU is emitted, if not caught, turns into a SIGSTP */
 	signal(SIGTTIN, SIG_IGN);
@@ -258,10 +263,12 @@ void Sys_ConsoleInit (void)
 	tc.c_cc[VTIME] = 0;
 	tcsetattr(STDIN_FILENO, TCSADRAIN, &tc);
 	ttyConsoleActivated = true;
+#endif
 }
 
 const char* Sys_ConsoleInput (void)
 {
+#ifndef __vita__
 	/* we use this when sending back commands */
 	static char text[256];
 
@@ -376,11 +383,13 @@ const char* Sys_ConsoleInput (void)
 
 		return text;
 	}
+#endif
 	return nullptr;
 }
 
 void Sys_ConsoleOutput (const char* string)
 {
+#ifndef __vita__
 	/* BUG: for some reason, NDELAY also affects stdout (1) when used on stdin (0). */
 	const int origflags = fcntl(STDOUT_FILENO, F_GETFL, 0);
 
@@ -392,4 +401,5 @@ void Sys_ConsoleOutput (const char* string)
 		string += written;
 	}
 	fcntl(STDOUT_FILENO, F_SETFL, origflags);
+#endif
 }

@@ -47,6 +47,12 @@ static cvar_t* vid_width;
  */
 static const vidmode_t vid_modes[] =
 {
+#ifdef __vita__
+	{  480,  272,  0 },
+	{  640,  368,  1 },
+	{  720,  408,  2 },
+	{  960,  544,  3 },
+#else
 	{  320,  240,  0 },
 	{  400,  300,  1 },
 	{  512,  384,  2 },
@@ -73,6 +79,7 @@ static const vidmode_t vid_modes[] =
 	{  800,  480, 23 }, /* OpenPandora */
 	{ 1920, 1080, 24 },  /* 1080p */
 	{ 1366,  768, 25 }
+#endif
 };
 
 /**

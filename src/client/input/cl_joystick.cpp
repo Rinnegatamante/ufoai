@@ -118,7 +118,7 @@ void IN_JoystickMove (void)
 		for (int i = 0; i < total; i++) {
 			const bool pressed = (SDL_JoystickGetButton(stick, i) != 0);
 			if (pressed != stick_state.buttons[i]) {
-				IN_EventEnqueue(K_JOY1 + i, 0, pressed);
+				IN_EventEnqueue(i == 11 ? K_ESCAPE : K_JOY1 + i, 0, pressed);
 				stick_state.buttons[i] = pressed;
 			}
 		}
@@ -222,14 +222,24 @@ void IN_JoystickMove (void)
 
 			if (i & 1) {
 				mousePosY += in_joystickSpeed->value * velocity;
+#ifdef __vita__
+				if (mousePosY > 768)
+					mousePosY = 768;
+#else
 				if (mousePosY > (int)viddef.context.height)
 					mousePosY = (int)viddef.context.height;
+#endif
 				else if (mousePosY < 0)
 					mousePosY = 0;
 			} else {
 				mousePosX += in_joystickSpeed->value * velocity;
+#ifdef __vita__
+				if (mousePosX > 1365)
+					mousePosX = 1365;
+#else
 				if (mousePosX > (int)viddef.context.width)
 					mousePosX = (int)viddef.context.width;
+#endif
 				else if (mousePosX < 0)
 					mousePosX = 0;
 			}
@@ -290,7 +300,11 @@ void IN_JoystickInitMenu (void)
  */
 void IN_StartupJoystick (void)
 {
+#ifdef __vita__
+	in_joystick = Cvar_Get("in_joystick", "1", CVAR_ARCHIVE, "Activate or deactivate the use of a joystick");
+#else
 	in_joystick = Cvar_Get("in_joystick", "0", CVAR_ARCHIVE, "Activate or deactivate the use of a joystick");
+#endif
 	in_joystickNo = Cvar_Get("in_joystickNo", "0", CVAR_ARCHIVE, "Joystick to use - 0 is the first - 1 is the second ...");
 	in_joystickThreshold = Cvar_Get("in_joystickThreshold", "0.05", CVAR_ARCHIVE, "The threshold for the joystick axes");
 	in_joystickSpeed = Cvar_Get("in_joystickSpeed", "20", CVAR_ARCHIVE, "The joystick speed for the cursor");

@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define bind_textdomain_codeset(IGNORE1, IGNORE2)
 #define textdomain(IGNORE1)
 #define gettext(String) gettext_noop(String)
+#define ngettext(x, y, cnt) x
 #else
 /* i18n support via gettext */
 #include <libintl.h>

@@ -859,7 +859,7 @@ static void CL_InitLocal (void)
 
 	/* register our variables */
 	cl_fps = Cvar_Get("cl_fps", "0", CVAR_ARCHIVE, "Show frames per second");
-	cl_log_battlescape_events = Cvar_Get("cl_log_battlescape_events", "1", 0, "Log all battlescape events to events.log");
+	cl_log_battlescape_events = Cvar_Get("cl_log_battlescape_events", "0", 0, "Log all battlescape events to events.log");
 	cl_selected = Cvar_Get("cl_selected", "0", CVAR_NOSET, "Current selected soldier");
 	cl_connecttimeout = Cvar_Get("cl_connecttimeout", "25000", CVAR_ARCHIVE, "Connection timeout for multiplayer connects");
 	/* userinfo */

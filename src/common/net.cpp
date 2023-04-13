@@ -57,7 +57,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #else /* WIN32 */
 
+#ifndef __vita__
 # include <sys/ioctl.h>
+#else
+# include <vitasdk.h>
+# define SOMAXCONN 128
+# define gai_strerror(x) ""
+#endif
 # include <sys/select.h>
 # include <sys/types.h>
 # include <sys/socket.h>
@@ -583,10 +589,15 @@ void NET_Wait (int timeout)
 static bool NET_SocketSetNonBlocking (SOCKET socketNum)
 {
 	unsigned long t = 1;
+#ifdef __vita__
+	if (setsockopt(socketNum, SOL_SOCKET, SCE_NET_SO_NBIO, (char *)&t, sizeof(unsigned long)) == -1)
+		return false;
+#else
 	if (ioctlsocket(socketNum, FIONBIO, &t) == -1) {
 		Com_Printf("ioctl FIONBIO failed: %s\n", strerror(errno));
 		return false;
 	}
+#endif
 	return true;
 }
 
@@ -655,7 +666,11 @@ struct net_stream* NET_Connect (const char* node, const char* service, stream_on
 
 	const int rc = getaddrinfo(node, service, &hints, &res);
 	if (rc != 0) {
+#ifdef __vita__
+		Com_Printf("Failed to resolve host %s:%s\n", node, service);
+#else
 		Com_Printf("Failed to resolve host %s:%s: %s\n", node, service, gai_strerror(rc));
+#endif
 		return nullptr;
 	}
 
@@ -863,6 +878,15 @@ const char* NET_StreamToString (struct net_stream* s)
 	return node;
 }
 
+#ifdef __vita__
+int getnameinfo(const struct sockaddr *sa, socklen_t salen,
+                char *host, size_t hostlen,
+                char *serv, size_t servlen, int flags) {
+
+    return -11; // EAI_SYSTEM
+}
+#endif
+
 /**
  * @param[in] s The network stream to get the name for
  * @param[out] dst The target buffer to store the ip and port in
@@ -887,7 +911,9 @@ const char* NET_StreamPeerToName (struct net_stream* s, char* dst, int len, bool
 	const int rc = getnameinfo((struct sockaddr* )buf, addrlen, node, sizeof(node), service, sizeof(service),
 			NI_NUMERICHOST | NI_NUMERICSERV);
 	if (rc != 0) {
+#ifndef __vita__
 		Com_Printf("Failed to convert sockaddr to string: %s\n", gai_strerror(rc));
+#endif
 		return "(error)";
 	}
 	if (!appendPort) {

@@ -8,7 +8,7 @@
 #include "s_mumble.h"
 #include "s_local.h"
 
-#ifdef ANDROID
+#if defined(ANDROID) || defined(__vita__)
 
 void S_MumbleInit (void)
 {

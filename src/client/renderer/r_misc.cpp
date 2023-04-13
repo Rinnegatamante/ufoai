@@ -322,6 +322,7 @@ void R_DumpOpenGlState (void)
 			strcat(s, "client active, ");
 
 		glGetIntegerv(GL_TEXTURE_BINDING_2D, &activeTexId);
+#ifndef __vita__
 		glGetTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, &texEnvMode);
 		if (fabs(texEnvMode - GL_ADD) < 0.1f)
 			texEnvModeStr = "ADD";
@@ -335,7 +336,7 @@ void R_DumpOpenGlState (void)
 			texEnvModeStr = "REPLACE";
 		if (fabs(texEnvMode - GL_COMBINE) < 0.1f)
 			texEnvModeStr = "COMBINE";
-
+#endif
 		Com_Printf("Texunit: %d texID %d %s texEnv mode %s\n", i - GL_TEXTURE0, activeTexId, s, texEnvModeStr);
 	}
 

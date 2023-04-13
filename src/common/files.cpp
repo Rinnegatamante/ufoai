@@ -67,11 +67,14 @@ void FS_CreateOpenPipeFile (const char* filename, qFILE* f)
  */
 const char* FS_Gamedir (void)
 {
+#ifdef __vita__
+	return "ux0:data/ufoai/base";
+#else
 	for (const searchpath_t* search = fs_searchpaths; search; search = search->next) {
 		if (search->write)
 			return search->filename;
 	}
-
+#endif
 	return nullptr;
 }
 
@@ -494,6 +497,10 @@ static char const* const pakFileExt[] = {
  */
 void FS_AddGameDirectory (const char* dir, bool write)
 {
+#ifdef __vita__
+	const char *def_base = "ux0:data/ufoai/base";
+	dir = def_base;
+#endif
 	int ndirs = 0;
 	char pakfile_list[MAX_PACKFILES][MAX_OSPATH];
 	int pakfile_count = 0;
@@ -631,6 +638,11 @@ const char* FS_NextPath (const char* prevpath)
 static bool FS_GetHomeDirectory (char* gdir, size_t length)
 {
 	const char* homedir = Sys_GetHomeDirectory();
+
+#ifdef __vita__
+	homedir = "ux0:data/ufoai";
+	return true;
+#endif
 
 	if (homedir) {
 #ifdef _WIN32

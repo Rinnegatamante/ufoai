@@ -164,11 +164,11 @@ void R_EnableModelLights (const light_t** lights, int numLights, bool inShadow, 
 #ifndef GL_VERSION_ES_CM_1_0
 		glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 #endif
-
+#ifndef __vita__
 		glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 1.0);
 		glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0);
 		glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0);
-
+#endif
 		glLightfv(GL_LIGHT0, GL_SPECULAR, blackColor);
 		glLightfv(GL_LIGHT0, GL_AMBIENT, refdef.modelAmbientColor);
 
@@ -284,7 +284,9 @@ void R_DisableLights (void)
 	vec4_t blackColor = {0.0, 0.0, 0.0, 1.0};
 
 	for (int i = 0; i < MAX_GL_LIGHTS; i++) {
+#ifndef __vita__
 		glLightf(GL_LIGHT0 + i, GL_CONSTANT_ATTENUATION, MIN_GL_CONSTANT_ATTENUATION);
+#endif
 		glLightfv(GL_LIGHT0 + i, GL_DIFFUSE, blackColor);
 		glLightfv(GL_LIGHT0 + i, GL_AMBIENT, blackColor);
 		glLightfv(GL_LIGHT0 + i, GL_SPECULAR, blackColor);

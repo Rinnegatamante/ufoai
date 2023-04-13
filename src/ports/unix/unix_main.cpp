@@ -56,17 +56,47 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 #include "../../shared/bfd.h"
 
+#ifdef __vita__
+#include <vitasdk.h>
+#include <vitaGL.h>
+gid_t getgid(void) { return 0; }
+gid_t getegid(void) { return 0; }
+uid_t geteuid(void) { return 0; }
+uid_t getuid(void) { return 0; }
+
+extern "C" {
+void *__wrap_calloc(uint32_t nmember, uint32_t size) { return vglCalloc(nmember, size); }
+void __wrap_free(void *addr) { vglFree(addr); };
+void *__wrap_malloc(uint32_t size) { return vglMalloc(size); };
+void *__wrap_memalign(uint32_t alignment, uint32_t size) { return vglMemalign(alignment, size); };
+void *__wrap_realloc(void *ptr, uint32_t size) { return vglRealloc(ptr, size); };
+void *__wrap_memcpy (void *dst, const void *src, size_t num) { return sceClibMemcpy(dst, src, num); };
+void *__wrap_memset (void *ptr, int value, size_t num) { return sceClibMemset(ptr, value, num); };
+};
+#endif
+
 const char* Sys_GetCurrentUser (void)
 {
 	static char s_userName[MAX_VAR];
 	const struct passwd* p;
-
+#ifdef __vita__
+	char nick[SCE_SYSTEM_PARAM_USERNAME_MAXSIZE];
+	SceAppUtilInitParam init_param;
+	SceAppUtilBootParam boot_param;
+	memset(&init_param, 0, sizeof(SceAppUtilInitParam));
+	memset(&boot_param, 0, sizeof(SceAppUtilBootParam));
+	sceAppUtilInit(&init_param, &boot_param);
+	sceAppUtilSystemParamGetString(SCE_SYSTEM_PARAM_ID_USERNAME, (SceChar8 *)nick, SCE_SYSTEM_PARAM_USERNAME_MAXSIZE);
+	strncpy(s_userName, nick, MAX_VAR);
+	s_userName[sizeof(s_userName) - 1] = '\0';
+#else
 	if ((p = getpwuid(getuid())) == nullptr)
 		s_userName[0] = '\0';
 	else {
 		strncpy(s_userName, p->pw_name, sizeof(s_userName));
 		s_userName[sizeof(s_userName) - 1] = '\0';
 	}
+#endif
 	return s_userName;
 }
 

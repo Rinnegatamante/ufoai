@@ -1,23 +1,8 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-  if(DEFINED ENV{VITASDK})
-    set(CMAKE_TOOLCHAIN_FILE "$ENV{VITASDK}/share/vita.toolchain.cmake" CACHE PATH "toolchain file")
-  else()
-    message(FATAL_ERROR "Please define VITASDK to point to your SDK path!")
-  endif()
-endif()
-
 # Project settings
 project(ufoai)
-
-include("${VITASDK}/share/vita.cmake" REQUIRED)
-set(VITA_APP_NAME "Ufo: Alien Invasion")
-set(VITA_TITLEID  "UFOAI0002")
-set(VITA_VERSION  "01.00")
-set(VITA_MKSFOEX_FLAGS "-d ATTRIBUTE2=12")
-
 set(UFOAI_PROJECT_GAME "game")
 set(UFOAI_PROJECT_UFO2MAP "ufo2map")
 set(UFOAI_PROJECT_UFODED "ufoded")
@@ -71,8 +56,6 @@ if(WIN32 AND MSVC)
    add_definitions(-DNOMINMAX)
 endif()
 
-add_definitions(-DNO_I18N -DHARD_LINKED_GAME -DHARD_LINKED_CGAME)
-
 # If the project is not built in the source directory, we copy needed data. Note that we do not create links because we assume
 # that if one do not use the source directory to build, he doesn't want to have the generated files in his source either.
 if(NOT CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -86,7 +69,7 @@ if(NOT CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
 endif()
 
 ## Projects we want to build
-option(UFOAI_BUILD_GAME "Build the library handling the battlescape" OFF)
+option(UFOAI_BUILD_GAME "Build the library handling the battlescape" ON)
 option(UFOAI_BUILD_UFO2MAP "Build the tool to compile maps" OFF)
 option(UFOAI_BUILD_UFODED "Build the dedicated server" OFF)
 option(UFOAI_BUILD_UFO "Build the main game" ON)
@@ -184,6 +167,16 @@ if(UFOAI_BUILD_GAME OR
 endif()
 
 if(UFOAI_BUILD_UFO OR
+      UFOAI_BUILD_UFOTESTALL)
+   find_package(SDL_mixer)
+endif()
+
+if(UFOAI_BUILD_UFO OR
+      UFOAI_BUILD_UFOTESTALL)
+   find_package(SDL_ttf)
+endif()
+
+if(UFOAI_BUILD_UFO OR
       UFOAI_BUILD_UFORADIANT OR
       UFOAI_BUILD_UFOTESTALL)
    find_package(VORBIS)
@@ -199,18 +192,12 @@ if(UFOAI_BUILD_UFO2MAP OR
    find_package(ZLIB)
 endif()
 
-set(SDL_INCLUDE_DIR "C:\\vitasdk\\arm-vita-eabi\\include\\SDL2")
-set(SDL_MIXER_INCLUDE_DIR "C:\\vitasdk\\arm-vita-eabi\\include\\SDL2")
-set(SDL_TTF_INCLUDE_DIR "C:\\vitasdk\\arm-vita-eabi\\include\\SDL2")
-
 # -std=c++11 is bugged on cygwin/mingw
 if(WIN32 AND MINGW)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
 elseif(!MSVC)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 endif()
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,-q,--wrap,memcpy,--wrap,memset,--wrap,malloc,--wrap,memalign,--wrap,free,--wrap,calloc,--wrap,realloc -O3 -ffast-math -fno-optimize-sibling-calls")
 
 ###############################################################################
 # game
@@ -946,35 +933,7 @@ if(UFOAI_BUILD_UFO)
       ${UFOAI_SRC}/libs/lua/lzio.c
       ${UFOAI_SRC}/libs/lua/print.c
 
-      ${UFOAI_SRC}/game/chr_shared.cpp
-      ${UFOAI_SRC}/game/g_actor.cpp
-      ${UFOAI_SRC}/game/g_ai.cpp
-      ${UFOAI_SRC}/game/g_ai_lua.cpp
-      ${UFOAI_SRC}/game/g_camera.cpp
-      ${UFOAI_SRC}/game/g_client.cpp
-      ${UFOAI_SRC}/game/g_cmds.cpp
-      ${UFOAI_SRC}/game/g_combat.cpp
-      ${UFOAI_SRC}/game/g_edicts.cpp
-      ${UFOAI_SRC}/game/g_events.cpp
-      ${UFOAI_SRC}/game/g_func.cpp
-      ${UFOAI_SRC}/game/g_health.cpp
-      ${UFOAI_SRC}/game/g_inventory.cpp
-      ${UFOAI_SRC}/game/g_main.cpp
-      ${UFOAI_SRC}/game/g_match.cpp
-      ${UFOAI_SRC}/game/g_mission.cpp
-      ${UFOAI_SRC}/game/g_morale.cpp
-      ${UFOAI_SRC}/game/g_move.cpp
-      ${UFOAI_SRC}/game/g_reaction.cpp
-      ${UFOAI_SRC}/game/g_round.cpp
-      ${UFOAI_SRC}/game/g_spawn.cpp
-      ${UFOAI_SRC}/game/g_stats.cpp
-      ${UFOAI_SRC}/game/g_svcmds.cpp
-      ${UFOAI_SRC}/game/g_trigger.cpp
-      ${UFOAI_SRC}/game/g_utils.cpp
-      ${UFOAI_SRC}/game/g_vis.cpp
-      ${UFOAI_SRC}/game/inv_shared.cpp
-      ${UFOAI_SRC}/game/inventory.cpp
-      ${UFOAI_SRC}/game/q_shared.cpp
+      ${UFOAI_SRC}/libs/mumble/libmumblelink.c
 
       ${UFOAI_SRC}/libs/mxml/mxml-attr.c
       ${UFOAI_SRC}/libs/mxml/mxml-entity.c
@@ -995,7 +954,6 @@ if(UFOAI_BUILD_UFO)
          ${UFOAI_SRC}/ports/windows/win_main.cpp
          ${UFOAI_SRC}/ports/windows/win_shared.cpp
          ${UFOAI_SRC}/ports/windows/ufo.rc
-		 ${UFOAI_SRC}/libs/mumble/libmumblelink.c
       )
    elseif(UNIX)
       SET(UFOAI_SOURCEFILES_UFO ${UFOAI_SOURCEFILES_UFO}
@@ -1004,7 +962,6 @@ if(UFOAI_BUILD_UFO)
          ${UFOAI_SRC}/ports/unix/unix_files.cpp
          ${UFOAI_SRC}/ports/unix/unix_shared.cpp
          ${UFOAI_SRC}/ports/unix/unix_main.cpp
-		 ${UFOAI_SRC}/libs/mumble/libmumblelink.c
       )
    elseif(SOLARIS)
       SET(UFOAI_SOURCEFILES_UFO ${UFOAI_SOURCEFILES_UFO}
@@ -1013,21 +970,11 @@ if(UFOAI_BUILD_UFO)
          ${UFOAI_SRC}/ports/unix/unix_files.cpp
          ${UFOAI_SRC}/ports/unix/unix_shared.cpp
          ${UFOAI_SRC}/ports/unix/unix_main.cpp
-		 ${UFOAI_SRC}/libs/mumble/libmumblelink.c
       )
    elseif(APPLE)
       SET(UFOAI_SOURCEFILES_UFO ${UFOAI_SOURCEFILES_UFO}
          ${UFOAI_SRC}/ports/macosx/osx_main.cpp
          ${UFOAI_SRC}/ports/macosx/osx_shared.cpp
-         ${UFOAI_SRC}/ports/unix/unix_console.cpp
-         ${UFOAI_SRC}/ports/unix/unix_files.cpp
-         ${UFOAI_SRC}/ports/unix/unix_shared.cpp
-         ${UFOAI_SRC}/ports/unix/unix_main.cpp
-		 ${UFOAI_SRC}/libs/mumble/libmumblelink.c
-      )
-   else()
-      SET(UFOAI_SOURCEFILES_UFO ${UFOAI_SOURCEFILES_UFO}
-         ${UFOAI_SRC}/ports/linux/linux_main.cpp
          ${UFOAI_SRC}/ports/unix/unix_console.cpp
          ${UFOAI_SRC}/ports/unix/unix_files.cpp
          ${UFOAI_SRC}/ports/unix/unix_shared.cpp
@@ -1128,61 +1075,6 @@ if(UFOAI_BUILD_UFO)
             ${LIBINTL_LIBRARIES}
          )
       endif()
-   else()
-      target_link_libraries(${UFOAI_PROJECT_UFO}
-         ${LIBINTL_LIBRARIES}
-		 m
-		 z
-		 stdc++
-		 SDL2_mixer
-		 SDL2_ttf
-		 vorbis
-		 vorbisfile
-		 ogg
-		 vitaGL
-		 vitashark
-		 SceShaccCgExt
-		 mathneon
-		 mpg123
-		 mikmod
-		 FLAC
-		 freetype
-		 curl
-		 ssl
-		 crypto
-		 taihen_stub
-		 kubridge_stub
-		 SceAppMgr_stub
-		 SceHid_stub
-		 SceIme_stub
-		 SceAppUtil_stub
-		 SceAudio_stub
-		 SceAudioIn_stub
-		 SceCtrl_stub
-		 SceCommonDialog_stub
-		 SceDisplay_stub
-		 SceKernelDmacMgr_stub
-		 SceFios2_stub
-		 SceGxm_stub
-		 SceMotion_stub
-		 SceNet_stub
-		 SceShaccCg_stub
-		 SceSysmodule_stub
-		 ScePower_stub
-		 SceTouch_stub
-		 SceVshBridge_stub
-		 SceAvPlayer_stub
-      )
-	  
-	  vita_create_self(eboot.bin ${UFOAI_PROJECT_UFO} UNSAFE)
-	  vita_create_vpk(ufoai.vpk ${VITA_TITLEID} eboot.bin
-	    VERSION ${VITA_VERSION}
-	    NAME ${VITA_APP_NAME}
-	    FILE ${CMAKE_SOURCE_DIR}/livearea/icon0.png sce_sys/icon0.png
-	         ${CMAKE_SOURCE_DIR}/livearea/default_gate.png sce_sys/livearea/contents/default_gate.png
-	         ${CMAKE_SOURCE_DIR}/livearea/bg0.png sce_sys/livearea/contents/bg0.png
-	         ${CMAKE_SOURCE_DIR}/livearea/template.xml sce_sys/livearea/contents/template.xml
-)
    endif()
 endif()
 
