@@ -61,6 +61,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 # include <sys/ioctl.h>
 #else
 # include <vitasdk.h>
+# include <netdb.h>
 # define SOMAXCONN 128
 # define gai_strerror(x) ""
 #endif

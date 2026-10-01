@@ -180,6 +180,8 @@ if(UFOAI_BUILD_GAME OR
       UFOAI_BUILD_UFOSLICER OR
       UFOAI_BUILD_UFORADIANT OR
       UFOAI_BUILD_UFOTESTALL)
+   # Vita GCC's -pthread retains the archive; an extra -lpthread duplicates it.
+   set(THREADS_PREFER_PTHREAD_FLAG ON)
    find_package(SDL)
 endif()
 
@@ -199,9 +201,6 @@ if(UFOAI_BUILD_UFO2MAP OR
    find_package(ZLIB)
 endif()
 
-set(SDL_INCLUDE_DIR "C:\\vitasdk\\arm-vita-eabi\\include\\SDL2")
-set(SDL_MIXER_INCLUDE_DIR "C:\\vitasdk\\arm-vita-eabi\\include\\SDL2")
-set(SDL_TTF_INCLUDE_DIR "C:\\vitasdk\\arm-vita-eabi\\include\\SDL2")
 
 # -std=c++11 is bugged on cygwin/mingw
 if(WIN32 AND MINGW)
@@ -1129,7 +1128,18 @@ if(UFOAI_BUILD_UFO)
          )
       endif()
    else()
+      find_package(PkgConfig REQUIRED)
+      pkg_check_modules(SDL2_mixer REQUIRED IMPORTED_TARGET SDL2_mixer)
+      pkg_check_modules(SDL2_ttf REQUIRED IMPORTED_TARGET SDL2_ttf)
+      pkg_check_modules(libcurl REQUIRED IMPORTED_TARGET libcurl)
+      pkg_check_modules(vorbisfile REQUIRED IMPORTED_TARGET vorbisfile)
+      pkg_check_modules(libpng REQUIRED IMPORTED_TARGET libpng)
       target_link_libraries(${UFOAI_PROJECT_UFO}
+         PkgConfig::SDL2_mixer
+         PkgConfig::SDL2_ttf
+         PkgConfig::libcurl
+         PkgConfig::vorbisfile
+         PkgConfig::libpng
          ${LIBINTL_LIBRARIES}
 		 m
 		 z
